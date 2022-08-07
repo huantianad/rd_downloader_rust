@@ -55,7 +55,7 @@ pub async fn get_urls(client: &Client, verified_only: bool) -> Result<Vec<String
             .get(url)
             .send()
             .await
-            .wrap_err("Network error sending initial request to rhythm.cafe api.")?;
+            .wrap_err("Network error sending request to rhythm.cafe api.")?;
 
         next_url = get_link_header(&response);
         result.append(&mut get_data(response).await?);
