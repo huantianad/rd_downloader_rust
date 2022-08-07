@@ -13,20 +13,24 @@
   };
 
   outputs = { self, fenix, flake-utils, naersk, nixpkgs }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
+    flake-utils.lib.eachDefaultSystem (system:
+      let
         pkgs = nixpkgs.legacyPackages."${system}";
         fenix-packages = fenix.packages.${system};
         naersk-lib = naersk.lib.${system}.override {
           inherit (fenix-packages.minimal) cargo rustc;
         };
-      in rec {
-        packages.rd-downloader = naersk-lib.buildPackage {
+
+        build-deps = with pkgs; [
+          openssl_3
+          pkg-config
+        ];
+      in
+      rec {
+        defaultPackage = naersk-lib.buildPackage {
           src = ./.;
-          buildInputs = with pkgs; [ openssl_3 pkg-config ];
+          buildInputs = build-deps;
         };
-        defaultPackage = packages.rd-downloader;
-        defaultApp = packages.rd-downloader;
 
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
@@ -38,10 +42,7 @@
               "rustfmt"
             ])
             fenix-packages.rust-analyzer
-
-            pkgs.openssl_3
-            pkgs.pkg-config
-          ];
+          ] ++ build-deps;
         };
       }
     );

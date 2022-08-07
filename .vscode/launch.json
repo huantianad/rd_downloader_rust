@@ -1,0 +1,47 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'rd_downloader'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=rd_downloader",
+                    "--package=rd_downloader"
+                ],
+                "filter": {
+                    "name": "rd_downloader",
+                    "kind": "bin"
+                }
+            },
+            "console": "integratedTerminal",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'rd_downloader'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=rd_downloader",
+                    "--package=rd_downloader"
+                ],
+                "filter": {
+                    "name": "rd_downloader",
+                    "kind": "bin"
+                }
+            },
+            "console": "integratedTerminal",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

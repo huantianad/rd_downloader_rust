@@ -6,60 +6,40 @@
     clippy::inefficient_to_string,
     clippy::suspicious
 )]
+#![feature(once_cell)]
 
-use reqwest::{Client, Response};
-use serde::Deserialize;
+mod api;
+mod download;
+mod prefs;
 
-#[derive(Deserialize)]
-struct Thing {
-    id: String,
-    url: String,
+use console::style;
+use eyre::{Context, Result};
+use reqwest::Client;
+
+fn print_yellow(string: &str) {
+    println!("{}", style(string).yellow())
 }
-
-fn get_link_header(response: &Response) -> Option<String> {
-    Some(
-        response
-            .headers()
-            .get("link")?
-            .to_str()
-            .ok()?
-            .strip_prefix('<')?
-            .strip_suffix(">; rel=\"next\"")?
-            .to_owned(),
-    )
-}
-
-async fn get_urls(client: Client, verified_only: bool) -> Result<Vec<Thing>, reqwest::Error> {
-    let initial_response = client
-        .get("https://api.rhythm.cafe/datasette/combined/levels.json")
-        .query(&[
-            if verified_only {
-                ("approval__gt", "0")
-            } else {
-                ("", "")
-            },
-            ("_shape", "array"),
-            ("_col", "url"),
-            ("_size", "max"),
-        ])
-        .send()
-        .await?;
-
-    let mut next_url = get_link_header(&initial_response);
-    let mut result = initial_response.json::<Vec<Thing>>().await?;
-
-    while let Some(url) = next_url {
-        let response = client.get(url).send().await?;
-
-        next_url = get_link_header(&response);
-        result.append(&mut response.json::<Vec<Thing>>().await?);
-    }
-
-    Ok(result)
+fn print_green(string: &str) {
+    println!("{}", style(string).green())
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
+    color_eyre::install()?;
+
     let client = Client::new();
-    println!("{}", get_urls(client, false).await.unwrap().len());
+    let prefs =
+        prefs::prompt_user_prefs().wrap_err("Error when prompting for user preferences.")?;
+
+    print_yellow("Querying rhythm.cafe for levels..");
+
+    let urls = api::get_urls(&client, prefs.verified_only)
+        .await
+        .wrap_err("Failed to fetch levels to download from rhythm.cafe api.")?;
+
+    print_green(&format!("Got {} levels.", urls.len()));
+
+    download::download_levels(&client, urls, prefs).await?;
+
+    Ok(())
 }
