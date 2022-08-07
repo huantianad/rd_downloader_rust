@@ -38,15 +38,25 @@ fn get_default_download_directory() -> Result<PathBufWrapper> {
 
 fn prompt_download_path() -> Result<PathBuf> {
     fn validator(path_wrapper: &PathBufWrapper) -> Result<(), &'static str> {
-        let path = &path_wrapper.0;
-
-        if path.is_file() {
-            return Err("Path is file, it should be a directory.");
+        if path_wrapper.0.is_file() {
+            Err("Path is file, it should be a folder.")
+        } else {
+            Ok(())
         }
+    }
+
+    loop {
+        let path = Input::new()
+            .with_prompt("Where should levels be downloaded to?")
+            .default(get_default_download_directory()?)
+            .validate_with(validator)
+            .interact()
+            .wrap_err("prompt_download_path error")?
+            .0;
 
         let exists = path
             .try_exists()
-            .map_err(|_| "Failed to check if folder already exists.")?;
+            .wrap_err("Failed to check if folder already exists.")?;
 
         let message = if exists {
             "Folder already exists, use it anyways?"
@@ -58,25 +68,15 @@ fn prompt_download_path() -> Result<PathBuf> {
             .with_prompt(message)
             .default(true)
             .interact()
-            .map_err(|_| "asdf")?;
+            .wrap_err("prompt_download_path confim error")?;
 
         if confirmed {
             if !exists {
-                create_dir_all(path).map_err(|_| "Failed to create directory!")?;
+                create_dir_all(&path).wrap_err("Failed to create folder!")?;
             }
-            Ok(())
-        } else {
-            Err("User canceled operation.")
+            return Ok(path);
         }
     }
-
-    Ok(Input::new()
-        .with_prompt("Where should levels be downloaded to?")
-        .default(get_default_download_directory()?)
-        .validate_with(validator)
-        .interact()
-        .wrap_err("prompt_download_path error")?
-        .0)
 }
 
 fn prompt_download_threads() -> Result<usize> {
