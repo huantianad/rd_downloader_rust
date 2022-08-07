@@ -50,7 +50,7 @@ fn prompt_download_path() -> Result<PathBuf> {
             .with_prompt("Where should levels be downloaded to?")
             .default(get_default_download_directory()?)
             .validate_with(validator)
-            .interact()
+            .interact_text()
             .wrap_err("prompt_download_path error")?
             .0;
 
@@ -92,7 +92,7 @@ fn prompt_download_threads() -> Result<usize> {
         .with_prompt("How many concurrent downloads would you like to use? Use the default if you don't know.")
         .default(3)
         .validate_with(validator)
-        .interact()
+        .interact_text()
         .wrap_err("prompt_download_threads error")
 }
 
