@@ -8,13 +8,17 @@
 )]
 #![feature(once_cell)]
 
+use console::style;
+use eyre::{Context, Result};
+use reqwest::Client;
+
 mod api;
 mod download;
 mod prefs;
 
-use console::style;
-use eyre::{Context, Result};
-use reqwest::Client;
+fn print_red(string: &str) {
+    println!("{}", style(string).red())
+}
 
 fn print_yellow(string: &str) {
     println!("{}", style(string).yellow())

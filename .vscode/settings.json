@@ -1,6 +1,8 @@
 {
-    "nixEnvSelector.nixFile": "${workspaceRoot}/flake.nix",
     "rust-analyzer.checkOnSave.enable": true,
     "rust-analyzer.checkOnSave.command": "clippy",
     "editor.formatOnSave": true,
+    "editor.rulers": [
+        80
+    ]
 }

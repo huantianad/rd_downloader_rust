@@ -1,7 +1,6 @@
 use eyre::{Context, Result};
 use reqwest::{Client, Response};
 use serde::Deserialize;
-use tap::Pipe;
 
 fn get_link_header(response: &Response) -> Option<String> {
     Some(
@@ -33,16 +32,14 @@ struct SiteData {
 }
 
 pub async fn get_urls(client: &Client, verified_only: bool) -> Result<Vec<String>> {
+    let mut queries = vec![("_shape", "array"), ("_col", "url"), ("_size", "max")];
+    if verified_only {
+        queries.push(("approval__gt", "0"));
+    }
+
     let initial_response = client
         .get("https://api.rhythm.cafe/datasette/combined/levels.json")
-        .query(&[("_shape", "array"), ("_col", "url"), ("_size", "max")])
-        .pipe(|builder| {
-            if verified_only {
-                builder.query(&[("approval__gt", "0")])
-            } else {
-                builder
-            }
-        })
+        .query(&queries)
         .send()
         .await
         .wrap_err("Network error sending initial request to rhythm.cafe api.")?;
