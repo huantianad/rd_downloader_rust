@@ -1,4 +1,4 @@
-# rd-downloader
+# rd_downloader
 Simple Bulk Downloader for the [RD custom levels site](https://rhythm.cafe/).
 Now written in Rust!
 
